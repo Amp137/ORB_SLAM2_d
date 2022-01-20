@@ -102,6 +102,7 @@ static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
     // Treat the center line differently, v=0
 	//这条v=0中心线的计算需要特殊对待
     //后面是以中心行为对称轴，成对遍历行数，所以PATCH_SIZE必须是奇数
+    // ? 计算方向的时候似乎没有用到之前计算的scalePatchSize，每一层都按照第0层的HALF_PATCH_SIZE计算，是不是有问题？
     for (int u = -HALF_PATCH_SIZE; u <= HALF_PATCH_SIZE; ++u)
 		//注意这里的center下标u可以是负的！中心水平线上的像素按x坐标（也就是u坐标）加权
         m_10 += u * center[u];
@@ -1569,7 +1570,7 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
 	
 	//如果本图像金字塔中没有任何的特征点
     if( nkeypoints == 0 )
-		//通过调用cv::mat类的.realse方法，强制清空矩阵的引用计数，这样就可以强制释放矩阵的数据了
+		//通过调用cv::mat类的.release方法，强制清空矩阵的引用计数，这样就可以强制释放矩阵的数据了
 		//参考[https://blog.csdn.net/giantchen547792075/article/details/9107877]
         _descriptors.release();
     else

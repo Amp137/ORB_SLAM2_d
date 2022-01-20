@@ -385,7 +385,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
         mbInitialComputations=false;
     }
 
-    //计算 basline
+    //计算 baseline （单目中并没有baseline，这里只是写了以下，没有实际用途）
     mb = mbf/fx;
 
 	// 将特征点分配到图像网格中 
@@ -717,7 +717,7 @@ void Frame::ComputeBoW()
 }
 
 /**
- * @brief 用内参对特征点去畸变，结果报存在mvKeysUn中
+ * @brief 用内参对特征点去畸变，结果保存在mvKeysUn中
  * 
  */
 void Frame::UndistortKeyPoints()
@@ -759,7 +759,7 @@ void Frame::UndistortKeyPoints()
     mat=mat.reshape(1);
 
     // Fill undistorted keypoint vector
-    // Step 存储校正后的特征点
+    // Step 3 存储校正后的特征点
     mvKeysUn.resize(N);
 	//遍历每一个特征点
     for(int i=0; i<N; i++)
