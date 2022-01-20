@@ -173,7 +173,7 @@ protected:
 
     /**
      * @brief 以八叉树分配特征点的方式，计算图像金字塔中的特征点
-     * @detials 这里两层vector的意思是，第一层存储的是某张图片中的所有特征点，而第二层则是存储图像金字塔中所有图像的vectors of keypoints
+     * @details 这里两层vector的意思是，第一层存储的是某张图片中的所有特征点，而第二层则是存储图像金字塔中所有图像的vectors of keypoints
      * @param[out] allKeypoints 提取得到的所有特征点
      */
     void ComputeKeyPointsOctTree(std::vector<std::vector<cv::KeyPoint> >& allKeypoints);    

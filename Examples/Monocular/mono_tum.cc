@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 /**
  * @brief 导入图片
  * 
- * @param[in] strFile                   读入的文件名称
+ * @param[in] strFile                   保存序列中RGB图像时间戳和路径的文本文件路径
  * @param[in&out] vstrImageFilenames    彩色图片名称
  * @param[in&out] vTimestamps           记录时间戳
  */
@@ -137,6 +137,14 @@ void LoadImages(const string &strFile, vector<string> &vstrImageFilenames, vecto
 {
     ifstream f;
     f.open(strFile.c_str());
+
+    /*     
+    strFile(rgb.txt)文件格式
+    前三行为注释
+    1305031790.645155 rgb/1305031790.645155.png
+    1305031790.681208 rgb/1305031790.681208.png
+    ... 
+    */
 
     // skip first three lines
     // 前三行是注释，跳过

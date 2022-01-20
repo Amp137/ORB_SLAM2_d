@@ -432,7 +432,7 @@ void Frame::ExtractORB(int flag, const cv::Mat &im)
 {
     // 判断是左图还是右图
     if(flag==0)
-        // 左图的话就套使用左图指定的特征点提取器，并将提取结果保存到对应的变量中 
+        // 左图的话就使用左图指定的特征点提取器，并将提取结果保存到对应的变量中 
         // 这里使用了仿函数来完成，重载了括号运算符 ORBextractor::operator() 
         (*mpORBextractorLeft)(im,				//待提取特征点的图像
 							  cv::Mat(),		//掩摸图像, 实际没有用到

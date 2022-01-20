@@ -479,7 +479,7 @@ ORBextractor::ORBextractor(int _nfeatures,		//指定要提取的特征点数目
 	//存储这个sigma^2，其实就是每层图像相对初始图像缩放因子的平方
     mvLevelSigma2.resize(nlevels);
 	//对于初始图像，这两个参数都是1
-    mvScaleFactor[0]=1.0f;
+    mvScaleFactor[0]=1.0f; // 注意，如果不指定浮点数的类型，默认是double
     mvLevelSigma2[0]=1.0f;
 	//然后逐层计算图像金字塔中图像相当于初始图像的缩放系数 
     for(int i=1; i<nlevels; i++)  
@@ -528,14 +528,15 @@ ORBextractor::ORBextractor(int _nfeatures,		//指定要提取的特征点数目
 	//成员变量pattern的长度，也就是点的个数，这里的512表示512个点（上面的数组中是存储的坐标所以是256*2*2）
     const int npoints = 512;
 	//获取用于计算BRIEF描述子的随机采样点点集头指针
-	//注意到pattern0数据类型为Points*,bit_pattern_31_是int[]型，所以这里需要进行强制类型转换
+	//注意到pattern0数据类型为Point*,bit_pattern_31_是int[]型，所以这里需要进行强制类型转换
     const Point* pattern0 = (const Point*)bit_pattern_31_;	
-	//使用std::back_inserter的目的是可以快覆盖掉这个容器pattern之前的数据
-	//其实这里的操作就是，将在全局变量区域的、int格式的随机采样点以cv::point格式复制到当前类对象中的成员变量中
+	//使用std::back_inserter的目的是可以覆盖掉pattern这个容器之前的数据
+    //std::copy和std::back_inserter配套使用，将一段内存区域中的数据按顺序插入到pattern，pattern会自动扩容
+	//其实这三行代码的操作就是，将在全局变量区域的、int格式的随机采样点以cv::Point格式复制到当前类对象中的成员变量中
     std::copy(pattern0, pattern0 + npoints, std::back_inserter(pattern));
 
     //This is for orientation
-	//下面的内容是和特征点的旋转计算有关的
+	//下面的内容是和特征点的旋转计算有关的，求解灰度质心
     // pre-compute the end of a row in a circular patch
 	//预先计算圆形patch中行的结束位置
 	//+1中的1表示那个圆的中间行
@@ -1148,9 +1149,8 @@ void ORBextractor::ComputeKeyPointsOctTree(
 		//并且调整其大小为欲提取出来的特征点个数（当然这里也是扩大了的，因为不可能所有的特征点都是在这一个图层中提取出来的）
         keypoints.reserve(nfeatures);
 
-        // 根据mnFeatuvector<KeyPoint> & keypoints = allKeypoints[level];resPerLevel,即该层的兴趣点数,对特征点进行剔除
+        // 根据mnFeaturesPerLevel,即该层的兴趣点数,对特征点进行剔除
 		//返回值是一个保存有特征点的vector容器，含有剔除后的保留下来的特征点
-        //得到的特征点的坐标，依旧是在当前图层下来讲的
         keypoints = DistributeOctTree(vToDistributeKeys, 			//当前图层提取出来的特征点，也即是等待剔除的特征点
 																	//NOTICE 注意此时特征点所使用的坐标都是在“半径扩充图像”下的
 									  minBorderX, maxBorderX,		//当前图层图像的边界，而这里的坐标却都是在“边缘扩充图像”下的
@@ -1533,7 +1533,7 @@ static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Ma
  * @param[in & out] _descriptors              存储特征点描述子的矩阵
  */
 void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
-                      OutputArray _descriptors)
+                      OutputArray _descriptors) // InputArray 和 OutputArray都是OpenCV的通用接口类，只能在形参类型中使用
 { 
 	// Step 1 检查图像有效性。如果图像为空，那么就直接返回
     if(_image.empty())
@@ -1663,7 +1663,7 @@ void ORBextractor::ComputePyramid(cv::Mat image)
         float scale = mvInvScaleFactor[level];
 		//计算本层图像的像素尺寸大小
         Size sz(cvRound((float)image.cols*scale), cvRound((float)image.rows*scale));
-		//全尺寸图像。包括无效图像区域的大小。将图像进行“补边”，EDGE_THRESHOLD区域外的图像不进行FAST角点检测
+		//全尺寸图像。包括无效图像区域的大小。将图像进行“补边”，sz范围内的像素才计算FAST角点
         Size wholeSize(sz.width + EDGE_THRESHOLD*2, sz.height + EDGE_THRESHOLD*2);
 		// 定义了两个变量：temp是扩展了边界的图像，masktemp并未使用
         Mat temp(wholeSize, image.type()), masktemp;
@@ -1709,6 +1709,8 @@ void ORBextractor::ComputePyramid(cv::Mat image)
 			*/
 			
 			//BORDER_ISOLATED	表示对整个图像进行操作
+            // When the source image is a part (ROI) of a bigger image, the function will try to use the pixels outside of the ROI to form a border. 
+            // To disable this feature and always do extrapolation, as if src was not a ROI, use borderType | BORDER_ISOLATED
             // https://docs.opencv.org/3.4.4/d2/de8/group__core__array.html#ga2ac1049c2c3dd25c2b41bffe17658a36
 
         }
