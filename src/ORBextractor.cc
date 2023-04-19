@@ -206,7 +206,7 @@ static void computeOrbDescriptor(const KeyPoint& kpt, const Mat& img, const Poin
 //下面就是预先定义好的随机点集，256是指可以提取出256bit的描述子信息，每个bit由一对点比较得来；4=2*2，前面的2是需要两个点（一对点）进行比较，后面的2是一个点有两个坐标
 static int bit_pattern_31_[256*4] =
 {
-    8,-3, 9,5/*mean (0), correlation (0)*/,				//后面的均值和相关性没有看懂是什么意思
+    8,-3, 9,5/*mean (0), correlation (0)*/,				
     4,2, 7,-12/*mean (1.12461e-05), correlation (0.0437584)*/,
     -11,9, -8,2/*mean (3.37382e-05), correlation (0.0617409)*/,
     7,-12, 12,-13/*mean (5.62303e-05), correlation (0.0636977)*/,
@@ -886,9 +886,8 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
         //停止这个过程的条件有两个，满足其中一个即可：
         //1、当前的节点数已经超过了要求的特征点数
         //2、当前所有的节点中都只包含一个特征点
-        if((int)lNodes.size()>=N 				//判断是否超过了要求的特征点数
-			|| (int)lNodes.size()==prevSize)	//prevSize中保存的是分裂之前的节点个数，如果分裂之前和分裂之后的总节点个数一样，说明当前所有的
-												//节点区域中只有一个特征点，已经不能够再细分了
+        //prevSize中保存的是分裂之前的节点个数，如果分裂之前和分裂之后的总节点个数一样，说明当前所有的节点区域中只有一个特征点，已经不能够再细分了
+        if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)	
         {
 			//停止标志置位
             bFinish = true;
@@ -1078,7 +1077,6 @@ void ORBextractor::ComputeKeyPointsOctTree(
             const float iniY =minBorderY+i*hCell;
 			//计算当前网格最大的行坐标，这里的+6=+3+3，即考虑到了多出来3是为了cell边界像素进行FAST特征点提取用
 			//前面的EDGE_THRESHOLD指的应该是提取后的特征点所在的边界，所以minBorderY是考虑了计算半径时候的图像边界
-			//目测一个图像网格的大小是25*25啊
             float maxY = iniY+hCell+6;
 
 			//如果初始的行坐标就已经超过了有效的图像边界了，这里的“有效图像”是指原始的、可以提取FAST特征点的图像区域

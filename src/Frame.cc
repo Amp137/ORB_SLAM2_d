@@ -660,7 +660,8 @@ vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const f
                 const float disty = kpUn.pt.y-y;
 
 				// 如果x方向和y方向的距离都在指定的半径之内，存储其index为候选特征点
-                if(fabs(distx)<r && fabs(disty)<r)
+                // if(fabs(distx)<r && fabs(disty)<r) //源代码这样写，搜索区域为正方形
+                if(distx*distx + disty*disty < r*r) // 这里改成圆形搜索区域，更合理
                     vIndices.push_back(vCell[j]);
             }
         }
@@ -853,7 +854,7 @@ void Frame::ComputeStereoMatches()
     // 金字塔底层（0层）图像高 nRows
     const int nRows = mpORBextractorLeft->mvImagePyramid[0].rows;
 
-	// 二维vector存储每一行的orb特征点的列坐标，为什么是vector，因为每一行的特征点有可能不一样，例如
+	// 二维vector存储每一行的orb特征点的列坐标的索引，为什么是vector，因为每一行的特征点有可能不一样，例如
     // vRowIndices[0] = [1，2，5，8, 11]   第1行有5个特征点,他们的列号（即x坐标）分别是1,2,5,8,11
     // vRowIndices[1] = [2，6，7，9, 13, 17, 20]  第2行有7个特征点.etc
     vector<vector<size_t> > vRowIndices(nRows, vector<size_t>());
@@ -888,7 +889,7 @@ void Frame::ComputeStereoMatches()
 
     const float minZ = mb;
     const float minD = 0;			// 最小视差为0，对应无穷远 
-    const float maxD = mbf/minZ;    // 最大视差对应的距离是相机的基线
+    const float maxD = mbf/minZ;    // 最大视差对应的距离是相机的焦距
 
     // 保存sad块匹配相似度和左图特征点索引
     vector<pair<int, int> > vDistIdx;
@@ -1059,8 +1060,8 @@ void Frame::ComputeStereoMatches()
                 mvDepth[iL]=mbf/disparity;
                 mvuRight[iL] = bestuR;
                 vDistIdx.push_back(pair<int,int>(bestDist,iL));
-        }   
-    }
+            }   
+        }
     }
     // Step 6. 删除离群点(outliers)
     // 块匹配相似度阈值判断，归一化sad最小，并不代表就一定是匹配的，比如光照变化、弱纹理、无纹理等同样会造成误匹配
